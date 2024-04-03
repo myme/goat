@@ -1,11 +1,14 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -51,11 +54,20 @@ func SearchGeoIP() (*IPLocation, error) {
 		return nil, err
 	}
 
-	locParts := strings.FieldsFunc(ipInfoResponse.Loc, func(r rune) bool {
+	loc, err := ParseLocation(ipInfoResponse.Loc)
+	if err != nil {
+		return nil, err
+	}
+
+	return &IPLocation{Ip: ipInfoResponse.Ip, Loc: *loc}, nil
+}
+
+func ParseLocation(loc string) (*Location, error) {
+	locParts := strings.FieldsFunc(loc, func(r rune) bool {
 		return r == ','
 	})
 	if len(locParts) != 2 {
-		return nil, fmt.Errorf("invalid location format: %s", ipInfoResponse.Loc)
+		return nil, fmt.Errorf("invalid location format: %s", loc)
 	}
 
 	lat, err := strconv.ParseFloat(locParts[0], 64)
@@ -68,8 +80,7 @@ func SearchGeoIP() (*IPLocation, error) {
 		return nil, err
 	}
 
-	loc := Location{Lat: lat, Lon: lon}
-	return &IPLocation{Ip: ipInfoResponse.Ip, Loc: loc}, nil
+	return &Location{Lat: lat, Lon: lon}, nil
 }
 
 func SearchAddress(query string) ([]Address, error) {
@@ -88,6 +99,12 @@ func SearchAddress(query string) ([]Address, error) {
 	}
 
 	return addressResponse.Addresses, nil
+}
+
+func Distance(l1 Location, l2 Location) float64 {
+	x := l2.Lat - l1.Lat
+	y := l2.Lon - l1.Lon
+	return math.Sqrt(math.Pow(x, 2) + math.Pow(y, 2))
 }
 
 func main() {
@@ -109,6 +126,14 @@ func main() {
 		return
 	}
 
-	fmt.Println(ip)
-	fmt.Println(addresses)
+	// Sort addresses by distance to IP location
+	slices.SortFunc(addresses, func(a, b Address) int {
+		return cmp.Compare(Distance(ip.Loc, a.Loc), Distance(ip.Loc, b.Loc))
+	})
+
+	// Print addresses
+	for _, address := range addresses {
+		distance := Distance(ip.Loc, address.Loc)
+		fmt.Printf("%.2f: %s, %s %s\n", distance, address.Text, address.PostCode, address.PostText)
+	}
 }
