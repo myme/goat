@@ -3,6 +3,7 @@ package goat
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -29,8 +30,15 @@ func SearchAddress(query string) ([]Address, error) {
 		return nil, err
 	}
 
-	var addressResponse AdressSearchResponse
-	err = json.NewDecoder(res.Body).Decode(&addressResponse)
+	return ParseAddress(res.Body)
+}
+
+func ParseAddress(data io.Reader) ([]Address, error) {
+	var addressResponse struct {
+		Addresses []Address `json:"adresser"`
+	}
+
+	err := json.NewDecoder(data).Decode(&addressResponse)
 	if err != nil {
 		return nil, err
 	}
