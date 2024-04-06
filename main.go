@@ -22,11 +22,13 @@ func Distance(l1 goat.Location, l2 goat.Location) float64 {
 func PrintAddresses(addresses []goat.Address, loc goat.Location) {
 	for i, address := range addresses {
 		distance := Distance(loc, address.Loc)
-		fmt.Printf("%d: %.2f: %s, %s %s\n", i + 1, distance, address.Text, address.PostCode, address.PostText)
+		fmt.Printf("%d: %.2f: %s, %s %s\n", i+1, distance, address.Text, address.PostCode, address.PostText)
 		fmt.Printf("  %f, %f\n", address.Loc.Lat, address.Loc.Lon)
 	}
 }
 
+// Print a list of places with their type, name, distance and location.
+// Only include places where the presence of goats are likely.
 func PrintPlaces(places []goat.Place) {
 	for _, place := range places {
 		if place.CouldHaveGoats() {
@@ -51,7 +53,7 @@ func SelectMatchingAddress(addresses []goat.Address) (*goat.Address, error) {
 		return nil, fmt.Errorf("Index must be a number between 1 and %d", len(addresses))
 	}
 
-	return &addresses[index - 1], nil
+	return &addresses[index-1], nil
 }
 
 func main() {

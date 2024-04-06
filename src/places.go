@@ -12,10 +12,10 @@ const PLACES_SEARCH_BASE = "https://ws.geonorge.no/stedsnavn/v1/punkt"
 
 // A Place - the bits of data we care about from the places API call
 type Place struct {
-	Type string
+	Type     string
 	Distance float64
-	Name string
-	Loc Location
+	Name     string
+	Loc      Location
 }
 
 func (place Place) CouldHaveGoats() bool {
@@ -58,13 +58,13 @@ func ParsePlaces(data io.Reader) ([]Place, error) {
 		// TODO: In case we need pagination
 		Metadata struct {
 			TotalHits int `json:"totaltAntallTreff"`
-			Page int `json:"side"`
+			Page      int `json:"side"`
 		} `json:"metadata"`
 		// The actual places
 		Places []struct {
-			Type string `json:"navneobjekttype"`
+			Type     string  `json:"navneobjekttype"`
 			Distance float64 `json:"meterFraPunkt"`
-			Loc struct {
+			Loc      struct {
 				Lat float64 `json:"nord"`
 				Lon float64 `json:"øst"`
 			} `json:"representasjonspunkt"`
@@ -83,10 +83,10 @@ func ParsePlaces(data io.Reader) ([]Place, error) {
 	for i, place := range placesJson.Places {
 		name := place.Names[0].Name
 		places[i] = Place{
-			Type: place.Type,
+			Type:     place.Type,
 			Distance: place.Distance,
-			Name: name,
-			Loc: Location{place.Loc.Lat, place.Loc.Lon},
+			Name:     name,
+			Loc:      Location{place.Loc.Lat, place.Loc.Lon},
 		}
 	}
 

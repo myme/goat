@@ -7,7 +7,7 @@ import (
 )
 
 type Result[t any] struct {
-	Ok *t
+	Ok  *t
 	Err error
 }
 
@@ -20,10 +20,10 @@ func GetJSON[t any](url string, parseJSON func(r io.Reader) (t, error)) chan Res
 		res, err := client.Get(url)
 		// fmt.Printf("GetJSON: Status %v\n", res.Status)
 		if err != nil {
-			ch <- Result[t]{ Ok: nil, Err: err }
+			ch <- Result[t]{Ok: nil, Err: err}
 		}
 		json, err := parseJSON(res.Body)
-		ch <- Result[t]{ Ok: &json, Err: err }
+		ch <- Result[t]{Ok: &json, Err: err}
 	}()
 
 	return ch
