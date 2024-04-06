@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"cmp"
 	"fmt"
 	"math"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 
 	goat "myme.no/goat/src"
@@ -32,6 +34,24 @@ func PrintPlaces(places []goat.Place) {
 			fmt.Printf("%10.1fm pos: %f,%f\n", place.Distance, place.Loc.Lat, place.Loc.Lon)
 		}
 	}
+}
+
+func SelectMatchingAddress(addresses []goat.Address) (*goat.Address, error) {
+	if len(addresses) == 1 {
+		return &addresses[0], nil
+	}
+
+	fmt.Print("Select an address: ")
+	input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		return nil, fmt.Errorf("Error reading input: %v", err)
+	}
+	index, err := strconv.Atoi(strings.TrimSpace(input))
+	if err != nil || index < 1 || index > len(addresses) {
+		return nil, fmt.Errorf("Index must be a number between 1 and %d", len(addresses))
+	}
+
+	return &addresses[index - 1], nil
 }
 
 func main() {
@@ -72,15 +92,19 @@ func main() {
 
 	// Select an address to search for goats nearby
 	PrintAddresses(*addresses.Ok, (*ip.Ok).Loc)
+	address, err := SelectMatchingAddress(*addresses.Ok)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	// Find places near selected address
-	places := <-goat.Places((*addresses.Ok)[0].Loc)
+	// Find, sort & print places near selected address.
+	// These are supposedly "farm" areas, where goats could be found.
+	places := <-goat.Places(address.Loc)
 	if places.Err != nil {
 		fmt.Println(places.Err)
 		return
 	}
-
-	// Sort places by distance
 	goat.SortPlaces(*places.Ok)
 	PrintPlaces(*places.Ok)
 }
