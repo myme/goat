@@ -1,5 +1,7 @@
 # Goat
 
+![Goat](./goat.webp)
+
 Have an irrational fear of goats?
 Simply greatly enjoy being in their presence?
 
