@@ -19,20 +19,12 @@ func Distance(l1 goat.Location, l2 goat.Location) float64 {
 	return math.Sqrt(math.Pow(x, 2) + math.Pow(y, 2))
 }
 
-func PrintAddresses(addresses []goat.Address, loc goat.Location) {
-	for i, address := range addresses {
-		distance := Distance(loc, address.Loc)
-		fmt.Printf("%d: %.2f: %s, %s %s\n", i+1, distance, address.Text, address.PostCode, address.PostText)
-		fmt.Printf("  %f, %f\n", address.Loc.Lat, address.Loc.Lon)
-	}
-}
-
 // Print a list of places with their type, name, distance and location.
 // Only include places where the presence of goats are likely.
 func PrintPlaces(places []goat.Place) {
 	for _, place := range places {
 		if place.CouldHaveGoats() {
-			fmt.Printf("%s %s\n", place.Type, place.Name)
+			fmt.Printf("🐐 [%s] %s\n", place.Type, place.Name)
 			fmt.Printf("%10.1fm pos: %f,%f\n", place.Distance, place.Loc.Lat, place.Loc.Lon)
 		}
 	}
@@ -57,6 +49,7 @@ func SelectMatchingAddress(addresses []goat.Address) (*goat.Address, error) {
 }
 
 func main() {
+
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: goat <address> <...address>")
 		return
@@ -92,13 +85,24 @@ func main() {
 		return cmp.Compare(distA, distB)
 	})
 
-	// Select an address to search for goats nearby
-	PrintAddresses(*addresses.Ok, (*ip.Ok).Loc)
-	address, err := SelectMatchingAddress(*addresses.Ok)
+	// Present selection list of addresses
+	listItems := make([]goat.Item, len(*addresses.Ok))
+	for i, address := range *addresses.Ok {
+		listItems[i] = goat.Item{
+			Index: i,
+			Text: address.Text,
+			Desc: fmt.Sprintf("%s %s", address.PostCode, address.PostText),
+			Filter: address.Format(),
+		}
+	}
+	item, err := goat.SelectFromList("Select an address", listItems)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
+	address := (*addresses.Ok)[item.Index]
+	fmt.Printf("Selected address: %v\n\n", address.Format())
 
 	// Find, sort & print places near selected address.
 	// These are supposedly "farm" areas, where goats could be found.

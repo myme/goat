@@ -21,7 +21,13 @@ type Address struct {
 }
 
 func SearchAddress(query string) chan Result[[]Address] {
-	url := fmt.Sprintf("%s?sok=%s", ADDRESS_SEARCH_BASE, url.QueryEscape(query))
+	hitsPerPage := 100
+	url := fmt.Sprintf(
+		"%s?sok=%s&treffPerSide=%d",
+		ADDRESS_SEARCH_BASE,
+		url.QueryEscape(query),
+		hitsPerPage,
+	)
 	return GetJSON(url, ParseAddress)
 }
 
@@ -36,4 +42,8 @@ func ParseAddress(data io.Reader) ([]Address, error) {
 	}
 
 	return addressResponse.Addresses, nil
+}
+
+func (a Address) Format() string {
+	return fmt.Sprintf("🏠 %s, %s %s", a.Text, a.PostCode, a.PostText)
 }

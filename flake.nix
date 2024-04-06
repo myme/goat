@@ -13,7 +13,7 @@
         packages.default = pkgs.buildGoModule {
           name = "goat";
           src = ./.;
-          vendorHash = null;
+          vendorHash = "sha256-m4QIGiuk8SbuwLI+Lp+NHgEZOvtwo7rbUiVmm7jwJ24=";
         };
         devShell = pkgs.mkShell {
           buildInputs = [
