@@ -3,7 +3,6 @@ package goat
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 )
 
 const IP_SEARCH_BASE = "https://ipinfo.io/"
@@ -13,15 +12,8 @@ type IPLocation struct {
 	Loc Location
 }
 
-func SearchGeoIP() (*IPLocation, error) {
-	client := http.Client{}
-
-	res, err := client.Get(IP_SEARCH_BASE)
-	if err != nil {
-		return nil, err
-	}
-
-	return ParseGeoIP(res.Body)
+func SearchGeoIP() chan Result[*IPLocation] {
+	return GetJSON(IP_SEARCH_BASE, ParseGeoIP)
 }
 
 func ParseGeoIP(data io.Reader) (*IPLocation, error) {

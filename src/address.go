@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 )
 
@@ -21,16 +20,9 @@ type Address struct {
 	Loc      Location `json:"representasjonspunkt"`
 }
 
-func SearchAddress(query string) ([]Address, error) {
-	client := http.Client{}
-
+func SearchAddress(query string) chan Result[[]Address] {
 	url := fmt.Sprintf("%s?sok=%s", ADDRESS_SEARCH_BASE, url.QueryEscape(query))
-	res, err := client.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	return ParseAddress(res.Body)
+	return GetJSON(url, ParseAddress)
 }
 
 func ParseAddress(data io.Reader) ([]Address, error) {
