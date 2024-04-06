@@ -1,6 +1,7 @@
 package goat
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -52,6 +53,28 @@ func TestParsePlaces(t *testing.T) {
 	}
 
 	if len(places) != 1 || places[0] != expected {
+		t.Errorf("Expected %v, got %v", expected, places)
+	}
+}
+
+func TestSortPlaces(t *testing.T) {
+	places := []Place{
+		{Distance: 100, Type: "Bruk"},
+		{Distance: 10, Type: "Bruk"},
+		{Distance: 1000, Type: "Gard"},
+		{Distance: 100, Type: "Gard"},
+	}
+
+	SortPlaces(places)
+
+	expected := []Place{
+		{Distance: 100, Type: "Gard"},
+		{Distance: 1000, Type: "Gard"},
+		{Distance: 10, Type: "Bruk"},
+		{Distance: 100, Type: "Bruk"},
+	}
+
+	if !reflect.DeepEqual(places, expected) {
 		t.Errorf("Expected %v, got %v", expected, places)
 	}
 }

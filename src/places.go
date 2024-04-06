@@ -1,9 +1,11 @@
 package goat
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
+	"slices"
 )
 
 const PLACES_SEARCH_BASE = "https://ws.geonorge.no/stedsnavn/v1/punkt"
@@ -18,6 +20,18 @@ type Place struct {
 
 func (place Place) CouldHaveGoats() bool {
 	return place.Type == "Gard" || place.Type == "Bruk"
+}
+
+func SortPlaces(places []Place) {
+	slices.SortFunc(places, func(a, b Place) int {
+		if a.Type == b.Type {
+			return cmp.Compare(a.Distance, b.Distance)
+		}
+		if a.Type == "Gard" {
+			return -1
+		}
+		return 1
+	})
 }
 
 func Places(loc Location) chan Result[[]Place] {

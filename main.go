@@ -66,15 +66,7 @@ func main() {
 	}
 
 	// Sort places by distance
-	slices.SortFunc(*places.Ok, func(a, b goat.Place) int {
-		if a.Type == b.Type {
-			return cmp.Compare(a.Distance, b.Distance)
-		}
-		if a.Type == "Gard" {
-			return -1
-		}
-		return 1
-	})
+	goat.SortPlaces(*places.Ok)
 
 	for _, place := range *places.Ok {
 		if place.CouldHaveGoats() {
