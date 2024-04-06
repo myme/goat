@@ -34,6 +34,10 @@ func main() {
 		fmt.Println("Error fetching addresses:", addresses.Err)
 		return
 	}
+	if len(*addresses.Ok) == 0 {
+		fmt.Println("No addresses found")
+		return
+	}
 
 	// Wait for GeoIP results
 	ip := <-geoIPCh
@@ -51,5 +55,31 @@ func main() {
 	for _, address := range *addresses.Ok {
 		distance := Distance((*ip.Ok).Loc, address.Loc)
 		fmt.Printf("%.2f: %s, %s %s\n", distance, address.Text, address.PostCode, address.PostText)
+		fmt.Printf("  %f, %f\n", address.Loc.Lat, address.Loc.Lon)
+	}
+
+	// Find places near selected address
+	places := <-goat.Places((*addresses.Ok)[0].Loc)
+	if places.Err != nil {
+		fmt.Println(places.Err)
+		return
+	}
+
+	// Sort places by distance
+	slices.SortFunc(*places.Ok, func(a, b goat.Place) int {
+		if a.Type == b.Type {
+			return cmp.Compare(a.Distance, b.Distance)
+		}
+		if a.Type == "Gard" {
+			return -1
+		}
+		return 1
+	})
+
+	for _, place := range *places.Ok {
+		if place.CouldHaveGoats() {
+			fmt.Printf("%s %s\n", place.Type, place.Name)
+			fmt.Printf("%10.1fm pos: %f,%f\n", place.Distance, place.Loc.Lat, place.Loc.Lon)
+		}
 	}
 }
