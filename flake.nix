@@ -10,6 +10,11 @@
     utils.lib.eachDefaultSystem (system:
       let pkgs = import nixpkgs { inherit system; };
       in {
+        packages.default = pkgs.buildGoModule {
+          name = "goat";
+          src = ./.;
+          vendorHash = null;
+        };
         devShell = pkgs.mkShell {
           buildInputs = [
             pkgs.go
