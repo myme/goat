@@ -5,7 +5,7 @@
 ## Goat wherever you wanna goat
 
 Do you have an irrational fear of goats?<br/>
-Do you simply enjoy being in their presence of goats?
+Do you simply enjoy being in the presence of goats?
 
 It's not easy to know where to start looking (or avoid) when it comes to goats.
 Recent intelligence, however, seem to indicate that goats do have a tendency to
