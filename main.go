@@ -24,8 +24,13 @@ func Distance(l1 goat.Location, l2 goat.Location) float64 {
 func PrintPlaces(places []goat.Place) {
 	for _, place := range places {
 		if place.CouldHaveGoats() {
+			url := fmt.Sprintf(
+				"https://www.google.com/maps/place/?q=%f,%f&t=k",
+				place.Loc.Lat,
+				place.Loc.Lon,
+			)
 			fmt.Printf("🐐 [%s] %s\n", place.Type, place.Name)
-			fmt.Printf("%10.1fm pos: %f,%f\n", place.Distance, place.Loc.Lat, place.Loc.Lon)
+			fmt.Printf("%10.1fm map: %s\n", place.Distance, url)
 		}
 	}
 }
