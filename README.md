@@ -7,7 +7,7 @@
 Do you have an irrational fear of goats?<br/>
 Do you simply enjoy being in the presence of goats?
 
-It's not easy to know where to start looking (or avoid) when it comes to goats.
+It's not easy to know where to start looking (or avoid going) when it comes to goats.
 Recent intelligence, however, seem to indicate that goats do have a tendency to
 flock around farms and surrounding farmland.
 
