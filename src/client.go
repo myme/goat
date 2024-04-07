@@ -11,6 +11,8 @@ type Result[t any] struct {
 	Err error
 }
 
+// GetJSON fetches a JSON resource from a URL and parses it into a value of type t.
+// TODO: Consider restricting t to only types that can be unmarshalled from JSON.
 func GetJSON[t any](url string, parseJSON func(r io.Reader) (t, error)) chan Result[t] {
 	// fmt.Printf("GetJSON: Fetching %s\n", url)
 	ch := make(chan Result[t])
