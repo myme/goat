@@ -59,6 +59,6 @@ func TestParseAddress(t *testing.T) {
 	}
 
 	if len(parsed) != 1 || parsed[0] != expected {
-		t.Errorf("Expected 1 address, got %d", len(parsed))
+		t.Errorf("Expected %v address, got %v", expected, parsed)
 	}
 }
