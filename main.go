@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 	"slices"
 	"strings"
 
@@ -76,6 +77,13 @@ func main() {
 	var options Options
 	flag.IntVar(&options.maxResults, "max-results", 10, "Maximum number of search results")
 	flag.BoolVar(&options.noAutoSelect, "no-auto-select", false, "Don't accept first search result automatically")
+	flag.Usage = func() {
+		out := flag.CommandLine.Output()
+		fmt.Fprintf(out, "Usage of %s:\n\n", os.Args[0])
+		fmt.Fprintf(out, "Explore places where the probability of goats is greater than 0.\n\n")
+		fmt.Fprintf(out, "goat <address> <...address>\n")
+		flag.PrintDefaults()
+	}
 	flag.Parse()
 
 	args := flag.Args()

@@ -20,7 +20,15 @@ greater than `0`.
 ## Usage
 
 ```
-Usage: goat <address> <...address>
+Usage of goat:
+
+Explore places where the probability of goats is greater than 0.
+
+goat <address> <...address>
+  -max-results int
+        Maximum number of search results (default 10)
+  -no-auto-select
+        Don't accept first search result automatically
 ```
 
 Note: All command line arguments are combined into a single address query.
