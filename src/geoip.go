@@ -1,3 +1,9 @@
+// Description: GeoIP search functionality.
+//
+// Search for the geolocation of an IP address using the https://ipinfo.io API.
+// The request is not parameterized, so the IP address used is only the
+// externally visible one.
+
 package goat
 
 import (

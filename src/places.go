@@ -1,3 +1,13 @@
+// Description: Fetches places from the Geonorge API.
+//
+// Fetches "points of interest" (POI) surrounding a given location. The
+// relevant fields are extracted from the JSON response:
+//
+// - Type: Enumeration of POI types, e.g. "Gard" (farm) or "Bruk" (small farm).
+// - Distance: Distance in meters from the given location.
+// - Name: The name of the POI.
+// - Loc: The location of the POI.
+
 package goat
 
 import (

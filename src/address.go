@@ -1,3 +1,8 @@
+// Description: Address search functionality.
+//
+// Search for addresses using the Geonorge APIs. Resulting JSON is parsed and
+// only the relevant fields are extracted.
+
 package goat
 
 import (

@@ -1,3 +1,5 @@
+// Description: Location struct and parsing helper functions.
+
 package goat
 
 import (

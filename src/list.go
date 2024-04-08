@@ -1,3 +1,9 @@
+// Description: A list selection UI for item selection.
+//
+// Makes use of [bubbles/list] and [bubbletea] to create a selector for a list
+// of items, resulting in a pretty UI supporting selection navigation and
+// searching.
+
 package goat
 
 import (

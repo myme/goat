@@ -1,3 +1,9 @@
+// Description: A simple HTTP client.
+//
+// A simple HTTP client that fetches JSON resources from a URL and parses them
+// using a provided callback function. The request is made asynchronously and
+// the result is sent back on a channel.
+
 package goat
 
 import (
