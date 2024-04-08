@@ -37,7 +37,7 @@ func SortPlaces(places []Place) {
 func Places(loc Location) chan Result[[]Place] {
 	// TODO Build query string using query string builder?
 	page := 1
-	hitsPerPage := 100
+	hitsPerPage := 500
 	// Upper limit. Consider to fetch multiple
 	radius := 5000
 	url := fmt.Sprintf(

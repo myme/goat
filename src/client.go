@@ -1,7 +1,7 @@
 package goat
 
 import (
-	// "fmt"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -24,6 +24,10 @@ func GetJSON[t any](url string, parseJSON func(r io.Reader) (t, error)) chan Res
 		if err != nil {
 			ch <- Result[t]{Ok: nil, Err: err}
 			return
+		}
+		if res.StatusCode != http.StatusOK {
+			err := fmt.Errorf("HTTP error: %s", res.Status)
+			ch <- Result[t]{Ok: nil, Err: err}
 		}
 		json, err := parseJSON(res.Body)
 		ch <- Result[t]{Ok: &json, Err: err}
