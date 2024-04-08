@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"cmp"
 	"fmt"
 	"math"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 
 	goat "myme.no/goat/src"
@@ -33,24 +31,6 @@ func PrintPlaces(places []goat.Place) {
 			fmt.Printf("%10.1fm map: %s\n", place.Distance, url)
 		}
 	}
-}
-
-func SelectMatchingAddress(addresses []goat.Address) (*goat.Address, error) {
-	if len(addresses) == 1 {
-		return &addresses[0], nil
-	}
-
-	fmt.Print("Select an address: ")
-	input, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		return nil, fmt.Errorf("Error reading input: %v", err)
-	}
-	index, err := strconv.Atoi(strings.TrimSpace(input))
-	if err != nil || index < 1 || index > len(addresses) {
-		return nil, fmt.Errorf("Index must be a number between 1 and %d", len(addresses))
-	}
-
-	return &addresses[index-1], nil
 }
 
 func main() {
