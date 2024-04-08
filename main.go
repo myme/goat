@@ -34,6 +34,32 @@ func PrintPlaces(places []goat.Place) {
 	}
 }
 
+// Select an address from a list of addresses.
+// If there is only one address, it is returned immediately.
+func SelectAddress(addresses []goat.Address) (*goat.Address, error) {
+	// Return only match
+	if len(addresses) == 1 {
+		return &addresses[0], nil
+	}
+
+	listItems := make([]goat.Item, len(addresses))
+	for i, address := range addresses {
+		listItems[i] = goat.Item{
+			Index:  i,
+			Text:   address.Text,
+			Desc:   fmt.Sprintf("%s %s", address.PostCode, address.PostText),
+			Filter: address.Format(),
+		}
+	}
+	item, err := goat.SelectFromList("Select an address", listItems)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &addresses[item.Index], nil
+}
+
 func main() {
 
 	if len(os.Args) < 2 {
@@ -72,22 +98,11 @@ func main() {
 	})
 
 	// Present selection list of addresses
-	listItems := make([]goat.Item, len(*addresses.Ok))
-	for i, address := range *addresses.Ok {
-		listItems[i] = goat.Item{
-			Index:  i,
-			Text:   address.Text,
-			Desc:   fmt.Sprintf("%s %s", address.PostCode, address.PostText),
-			Filter: address.Format(),
-		}
-	}
-	item, err := goat.SelectFromList("Select an address", listItems)
+	address, err := SelectAddress(*addresses.Ok)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	address := (*addresses.Ok)[item.Index]
 	fmt.Printf("Selected address: %v\n\n", address.Format())
 
 	// Find, sort & print places near selected address.
