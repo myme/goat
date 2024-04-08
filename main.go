@@ -2,9 +2,9 @@ package main
 
 import (
 	"cmp"
+	"flag"
 	"fmt"
 	"math"
-	"os"
 	"slices"
 	"strings"
 
@@ -20,9 +20,14 @@ func Distance(l1 goat.Location, l2 goat.Location) float64 {
 
 // Print a list of places with their type, name, distance and location.
 // Only include places where the presence of goats are likely.
-func PrintPlaces(places []goat.Place) {
+func PrintPlaces(places []goat.Place, maxResults int) {
+	potentialGoatPlaces := 0
 	for _, place := range places {
 		if place.CouldHaveGoats() {
+			potentialGoatPlaces++
+			if potentialGoatPlaces > maxResults {
+				break
+			}
 			url := fmt.Sprintf(
 				"https://www.google.com/maps/place/?q=%f,%f&t=k",
 				place.Loc.Lat,
@@ -36,9 +41,9 @@ func PrintPlaces(places []goat.Place) {
 
 // Select an address from a list of addresses.
 // If there is only one address, it is returned immediately.
-func SelectAddress(addresses []goat.Address) (*goat.Address, error) {
+func SelectAddress(addresses []goat.Address, autoSelect bool) (*goat.Address, error) {
 	// Return only match
-	if len(addresses) == 1 {
+	if len(addresses) == 1 && autoSelect {
 		return &addresses[0], nil
 	}
 
@@ -60,15 +65,27 @@ func SelectAddress(addresses []goat.Address) (*goat.Address, error) {
 	return &addresses[item.Index], nil
 }
 
+type Options struct {
+	maxResults   int
+	noAutoSelect bool
+}
+
 func main() {
 
-	if len(os.Args) < 2 {
+	// CLI args parser
+	var options Options
+	flag.IntVar(&options.maxResults, "max-results", 10, "Maximum number of search results")
+	flag.BoolVar(&options.noAutoSelect, "no-auto-select", false, "Don't accept first search result automatically")
+	flag.Parse()
+
+	args := flag.Args()
+	if len(args) < 1 {
 		fmt.Println("Usage: goat <address> <...address>")
 		return
 	}
 
 	// Run parallel queries
-	query := strings.Join(os.Args[1:], " ")
+	query := strings.Join(args, " ")
 	addrCh := goat.SearchAddress(query)
 	geoIPCh := goat.SearchGeoIP()
 
@@ -98,7 +115,7 @@ func main() {
 	})
 
 	// Present selection list of addresses
-	address, err := SelectAddress(*addresses.Ok)
+	address, err := SelectAddress(*addresses.Ok, !options.noAutoSelect)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -113,5 +130,6 @@ func main() {
 		return
 	}
 	goat.SortPlaces(*places.Ok)
-	PrintPlaces(*places.Ok)
+	PrintPlaces(*places.Ok, options.maxResults)
+
 }
