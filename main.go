@@ -11,6 +11,7 @@ import (
 	goat "myme.no/goat/src"
 )
 
+// Calculate the pythagorean distance between two locations.
 func Distance(l1 goat.Location, l2 goat.Location) float64 {
 	x := l2.Lat - l1.Lat
 	y := l2.Lon - l1.Lon
@@ -74,9 +75,9 @@ func main() {
 	listItems := make([]goat.Item, len(*addresses.Ok))
 	for i, address := range *addresses.Ok {
 		listItems[i] = goat.Item{
-			Index: i,
-			Text: address.Text,
-			Desc: fmt.Sprintf("%s %s", address.PostCode, address.PostText),
+			Index:  i,
+			Text:   address.Text,
+			Desc:   fmt.Sprintf("%s %s", address.PostCode, address.PostText),
 			Filter: address.Format(),
 		}
 	}

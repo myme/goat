@@ -60,6 +60,7 @@ func (i Item) Title() string       { return i.Text }
 func (i Item) Description() string { return i.Desc }
 func (i Item) FilterValue() string { return i.Filter }
 
+// Displays a pretty selection list of [Item] and return the selected [Item].
 func SelectFromList(title string, items []Item) (*Item, error) {
 	listItems := make([]list.Item, len(items))
 	for i := range items {
