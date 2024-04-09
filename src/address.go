@@ -49,29 +49,46 @@ func SearchAddress(query string) chan Result[[]Address] {
 }
 
 func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan Result[[]Address] {
-	totalFetched := 0
-	var addresses []Address
 	ch := make(chan Result[[]Address])
 
-	var doFetchPage func(int)
-	doFetchPage = func(page int) {
-		result := <-fetchPage(page)
+	// Fetch the first page
+	go func() {
+		result := <-fetchPage(0)
 		if result.Err != nil {
 			ch <- Result[[]Address]{Ok: nil, Err: result.Err}
 			return
 		}
 
-		totalFetched += len((*result.Ok).Addresses)
-		addresses = append(addresses, (*result.Ok).Addresses...)
+		addresses := (*result.Ok).Addresses
+		meta := (*result.Ok).Metadata
+		hitsPerPage := meta.HitsPerPage
 
-		if totalFetched < (*result.Ok).Metadata.TotalHits {
-			go doFetchPage(page + 1)
-		} else {
-			ch <- Result[[]Address]{Ok: &addresses, Err: nil}
+		// Are there more pages to fetch?
+		if meta.To < meta.TotalHits {
+			// Start fetching the rest of the pages in parallel
+			channels := make([]chan Result[*AddressSearchResponse], meta.TotalHits/meta.HitsPerPage-1)
+			for i := 0; i < len(channels); i++ {
+				channels[i] = fetchPage(i+1)
+			}
+
+			// Allocate space for the rest of the addresses (avoid re-alloc later)
+			addresses = append(addresses, make([]Address, meta.TotalHits-hitsPerPage)...)
+
+			// Collect the results
+			for i := 0; i < len(channels); i++ {
+				result := <-channels[i]
+				if result.Err != nil {
+					ch <- Result[[]Address]{Ok: nil, Err: result.Err}
+					return
+				}
+				for j, address := range (*result.Ok).Addresses {
+					addresses[hitsPerPage*(i+1)+j] = address
+				}
+			}
 		}
-	}
 
-	go doFetchPage(0)
+		ch <- Result[[]Address]{Ok: &addresses, Err: nil}
+	}()
 
 	return ch
 }
