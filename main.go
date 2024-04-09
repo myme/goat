@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	goat "myme.no/goat/src"
+	goat "github.com/myme/goat/src"
 )
 
 // Calculate the pythagorean distance between two locations.

@@ -1,4 +1,4 @@
-module myme.no/goat
+module github.com/myme/goat
 
 go 1.22.1
 

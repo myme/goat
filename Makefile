@@ -4,7 +4,7 @@ build:
 	go build
 
 test:
-	go test -v myme.no/goat/src
+	go test -v github.com/myme/goat/src
 
 clean:
 	rm -f goat
