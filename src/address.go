@@ -51,8 +51,8 @@ func SearchAddress(query string) chan Result[[]Address] {
 func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan Result[[]Address] {
 	ch := make(chan Result[[]Address])
 
-	// Fetch the first page
 	go func() {
+		// Fetch the first page
 		result := <-fetchPage(0)
 		if result.Err != nil {
 			ch <- Result[[]Address]{Ok: nil, Err: result.Err}
@@ -61,7 +61,6 @@ func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan
 
 		addresses := (*result.Ok).Addresses
 		meta := (*result.Ok).Metadata
-		hitsPerPage := meta.HitsPerPage
 
 		// Are there more pages to fetch?
 		if meta.To < meta.TotalHits {
@@ -72,7 +71,7 @@ func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan
 			}
 
 			// Allocate space for the rest of the addresses (avoid re-alloc later)
-			addresses = append(addresses, make([]Address, meta.TotalHits-hitsPerPage)...)
+			addresses = append(addresses, make([]Address, meta.TotalHits-meta.HitsPerPage)...)
 
 			// Collect the results
 			for i := 0; i < len(channels); i++ {
@@ -82,7 +81,7 @@ func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan
 					return
 				}
 				for j, address := range (*result.Ok).Addresses {
-					addresses[hitsPerPage*(i+1)+j] = address
+					addresses[meta.HitsPerPage*(i+1)+j] = address
 				}
 			}
 		}
