@@ -15,12 +15,12 @@ import (
 const ADDRESS_SEARCH_BASE = "https://ws.geonorge.no/adresser/v1/sok"
 
 type AddressSearchResponse struct {
-	Metadata  struct {
-		Page		   int    `json:"side"`
-		TotalHits      int    `json:"totaltAntallTreff"`
-		HitsPerPage    int    `json:"treffPerSide"`
-		From		   int    `json:"viserFra"`
-		To			   int    `json:"viserTil"`
+	Metadata struct {
+		Page        int `json:"side"`
+		TotalHits   int `json:"totaltAntallTreff"`
+		HitsPerPage int `json:"treffPerSide"`
+		From        int `json:"viserFra"`
+		To          int `json:"viserTil"`
 	} `json:"metadata"`
 	Addresses []Address `json:"adresser"`
 }
@@ -40,20 +40,35 @@ func SearchAddress(query string) chan Result[[]Address] {
 		url.QueryEscape(query),
 		hitsPerPage,
 	)
-	return GetJSON(url, ParseAddress)
+	return FetchAllPages(func(page int) chan Result[*AddressSearchResponse] {
+		return GetJSON(url, ParseAddress)
+	})
 }
 
-func ParseAddress(data io.Reader) ([]Address, error) {
-	var addressResponse struct {
-		Addresses []Address `json:"adresser"`
-	}
+func FetchAllPages(fetch func(int) chan Result[*AddressSearchResponse]) chan Result[[]Address] {
+	ch := make(chan Result[[]Address])
+
+	go func() {
+		result := <-fetch(0)
+		if result.Err != nil {
+			ch <- Result[[]Address]{Ok: nil, Err: result.Err}
+		} else {
+			ch <- Result[[]Address]{Ok: &(*result.Ok).Addresses, Err: nil}
+		}
+	}()
+
+	return ch
+}
+
+func ParseAddress(data io.Reader) (*AddressSearchResponse, error) {
+	var addressResponse AddressSearchResponse
 
 	err := json.NewDecoder(data).Decode(&addressResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return addressResponse.Addresses, nil
+	return &addressResponse, nil
 }
 
 func (a Address) Format() string {

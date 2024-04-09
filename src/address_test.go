@@ -2,6 +2,7 @@ package goat
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -59,14 +60,19 @@ func TestParseAddress(t *testing.T) {
 		Loc:      Location{59.78502106569645, 10.799290993113777},
 	}
 
-	if len(parsed) != 1 || parsed[0] != expected {
+	if len(parsed.Addresses) != 1 || parsed.Addresses[0] != expected {
 		t.Errorf("Expected %v address, got %v", expected, parsed)
 	}
 }
 
-func TestFetchMultiplePages(t *testing.T) {
+func TestFetchAllPagesSinglePage(t *testing.T) {
+	totalHits := 1
+	hitsPerPage := 1
+
 	// API JSON response data
 	makeJsonData := func(page int) string {
+		from := page * hitsPerPage
+		to := from + hitsPerPage
 		return fmt.Sprintf(`
 			{
 			  "adresser": [
@@ -85,25 +91,38 @@ func TestFetchMultiplePages(t *testing.T) {
 				"asciiKompatibel": true,
 				"side": %d,
 				"sokeStreng": "sok=myrvollveien%%205c",
-				"totaltAntallTreff": 1,
-				"treffPerSide": 10,
-				"viserFra": 0,
-				"viserTil": 10
+				"totaltAntallTreff": %d,
+				"treffPerSide": %d,
+				"viserFra": %d,
+				"viserTil": %d
 			  }
 			}
-		`, page)
+		`, page, totalHits, hitsPerPage, from, to)
 	}
 
-	parsed, _ := ParseAddress(strings.NewReader(makeJsonData(0)))
+	result := <-FetchAllPages(func(page int) chan Result[*AddressSearchResponse] {
+		ch := make(chan Result[*AddressSearchResponse])
 
-	expected := Address{
-		Text:     "Myrvollveien 5C",
-		PostCode: "1415",
-		PostText: "OPPEGÅRD",
-		Loc:      Location{59.78502106569645, 10.799290993113777},
+		go func() {
+			res, err := ParseAddress(strings.NewReader(makeJsonData(page)))
+			result := Result[*AddressSearchResponse]{Ok: &res, Err: err}
+			ch <- result
+		}()
+
+		return ch
+	})
+
+	fetched := *result.Ok
+	expected := []Address{
+		{
+			Text:     "Myrvollveien 5C",
+			PostCode: "1415",
+			PostText: "OPPEGÅRD",
+			Loc:      Location{59.78502106569645, 10.799290993113777},
+		},
 	}
 
-	if len(parsed) != 1 || parsed[0] != expected {
-		t.Errorf("Expected %v address, got %v", expected, parsed)
+	if !reflect.DeepEqual(fetched, expected) {
+		t.Errorf("Expected %v address, got %v", expected, fetched)
 	}
 }
