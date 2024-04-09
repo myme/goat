@@ -1,6 +1,7 @@
 package goat
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -50,6 +51,50 @@ func TestParseAddress(t *testing.T) {
 	`
 
 	parsed, _ := ParseAddress(strings.NewReader(jsonData))
+
+	expected := Address{
+		Text:     "Myrvollveien 5C",
+		PostCode: "1415",
+		PostText: "OPPEGÅRD",
+		Loc:      Location{59.78502106569645, 10.799290993113777},
+	}
+
+	if len(parsed) != 1 || parsed[0] != expected {
+		t.Errorf("Expected %v address, got %v", expected, parsed)
+	}
+}
+
+func TestFetchMultiplePages(t *testing.T) {
+	// API JSON response data
+	makeJsonData := func(page int) string {
+		return fmt.Sprintf(`
+			{
+			  "adresser": [
+				{
+				  "adressetekst": "Myrvollveien 5C",
+				  "postnummer": "1415",
+				  "poststed": "OPPEGÅRD",
+				  "representasjonspunkt": {
+					"epsg": "EPSG:4258",
+					"lat": 59.78502106569645,
+					"lon": 10.799290993113777
+				  }
+				}
+			  ],
+			  "metadata": {
+				"asciiKompatibel": true,
+				"side": %d,
+				"sokeStreng": "sok=myrvollveien%%205c",
+				"totaltAntallTreff": 1,
+				"treffPerSide": 10,
+				"viserFra": 0,
+				"viserTil": 10
+			  }
+			}
+		`, page)
+	}
+
+	parsed, _ := ParseAddress(strings.NewReader(makeJsonData(0)))
 
 	expected := Address{
 		Text:     "Myrvollveien 5C",
