@@ -51,7 +51,7 @@ func TestParseAddress(t *testing.T) {
 		}
 	`
 
-	parsed, _ := ParseAddress(strings.NewReader(jsonData))
+	parsed, _ := ParseAddress(1, strings.NewReader(jsonData))
 
 	expected := Address{
 		Text:     "Myrvollveien 5C",
@@ -76,7 +76,7 @@ func TestFetchAllPages(t *testing.T) {
 			{
 			  "adresser": [
 				{
-				  "adressetekst": "Myrvollveien 5C",
+				  "adressetekst": "Myrvollveien %d",
 				  "postnummer": "1415",
 				  "poststed": "OPPEGÅRD",
 				  "representasjonspunkt": {
@@ -96,7 +96,7 @@ func TestFetchAllPages(t *testing.T) {
 				"viserTil": %d
 			  }
 			}
-		`, page, totalHits, hitsPerPage, from, to)
+		`, page+1, page, totalHits, hitsPerPage, from, to)
 	}
 
 	// Synthesize fetching all pages
@@ -105,7 +105,7 @@ func TestFetchAllPages(t *testing.T) {
 			ch := make(chan Result[*AddressSearchResponse])
 
 			go func() {
-				res, err := ParseAddress(strings.NewReader(makeJsonData(page, totalHits)))
+				res, err := ParseAddress(hitsPerPage, strings.NewReader(makeJsonData(page, totalHits)))
 				result := Result[*AddressSearchResponse]{Ok: &res, Err: err}
 				ch <- result
 			}()
@@ -121,7 +121,7 @@ func TestFetchAllPages(t *testing.T) {
 		fetched := *result.Ok
 		expected := []Address{
 			{
-				Text:     "Myrvollveien 5C",
+				Text:     "Myrvollveien 1",
 				PostCode: "1415",
 				PostText: "OPPEGÅRD",
 				Loc:      Location{59.78502106569645, 10.799290993113777},
@@ -134,27 +134,25 @@ func TestFetchAllPages(t *testing.T) {
 	})
 
 	t.Run("Three pages", func(t *testing.T) {
-		t.Skip("TODO: Doesn't yet fetch multiple pages")
-
 		totalHits := 3
 		result := <-fetchAllPages(totalHits)
 
 		fetched := *result.Ok
 		expected := []Address{
 			{
-				Text:     "Myrvollveien 5C",
+				Text:     "Myrvollveien 1",
 				PostCode: "1415",
 				PostText: "OPPEGÅRD",
 				Loc:      Location{59.78502106569645, 10.799290993113777},
 			},
 			{
-				Text:     "Myrvollveien 5C",
+				Text:     "Myrvollveien 2",
 				PostCode: "1415",
 				PostText: "OPPEGÅRD",
 				Loc:      Location{59.78502106569645, 10.799290993113777},
 			},
 			{
-				Text:     "Myrvollveien 5C",
+				Text:     "Myrvollveien 3",
 				PostCode: "1415",
 				PostText: "OPPEGÅRD",
 				Loc:      Location{59.78502106569645, 10.799290993113777},

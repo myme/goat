@@ -34,34 +34,48 @@ type Address struct {
 
 func SearchAddress(query string) chan Result[[]Address] {
 	hitsPerPage := 100
-	url := fmt.Sprintf(
-		"%s?sok=%s&treffPerSide=%d",
-		ADDRESS_SEARCH_BASE,
-		url.QueryEscape(query),
-		hitsPerPage,
-	)
 	return FetchAllPages(func(page int) chan Result[*AddressSearchResponse] {
-		return GetJSON(url, ParseAddress)
+		url := fmt.Sprintf(
+			"%s?sok=%s&side=%d&treffPerSide=%d",
+			ADDRESS_SEARCH_BASE,
+			url.QueryEscape(query),
+			page,
+			hitsPerPage,
+		)
+		return GetJSON(url, func (data io.Reader) (*AddressSearchResponse, error) {
+			return ParseAddress(hitsPerPage, data)
+		})
 	})
 }
 
-func FetchAllPages(fetch func(int) chan Result[*AddressSearchResponse]) chan Result[[]Address] {
+func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan Result[[]Address] {
+	totalFetched := 0
+	var addresses []Address
 	ch := make(chan Result[[]Address])
 
-	go func() {
-		result := <-fetch(0)
+	var doFetchPage func(int)
+	doFetchPage = func(page int) {
+		result := <-fetchPage(page)
 		if result.Err != nil {
 			ch <- Result[[]Address]{Ok: nil, Err: result.Err}
-		} else {
-			ch <- Result[[]Address]{Ok: &(*result.Ok).Addresses, Err: nil}
 		}
-	}()
+		totalFetched += len((*result.Ok).Addresses)
+		addresses = append(addresses, (*result.Ok).Addresses...)
+		if totalFetched < (*result.Ok).Metadata.TotalHits {
+			go doFetchPage(page + 1)
+		} else {
+			ch <- Result[[]Address]{Ok: &addresses, Err: nil}
+		}
+	}
+
+	go doFetchPage(0)
 
 	return ch
 }
 
-func ParseAddress(data io.Reader) (*AddressSearchResponse, error) {
+func ParseAddress(hitsPerPage int, data io.Reader) (*AddressSearchResponse, error) {
 	var addressResponse AddressSearchResponse
+	addressResponse.Addresses = make([]Address, hitsPerPage)
 
 	err := json.NewDecoder(data).Decode(&addressResponse)
 	if err != nil {
