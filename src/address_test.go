@@ -65,12 +65,11 @@ func TestParseAddress(t *testing.T) {
 	}
 }
 
-func TestFetchAllPagesSinglePage(t *testing.T) {
-	totalHits := 1
+func TestFetchAllPages(t *testing.T) {
 	hitsPerPage := 1
 
 	// API JSON response data
-	makeJsonData := func(page int) string {
+	makeJsonData := func(page, totalHits int) string {
 		from := page * hitsPerPage
 		to := from + hitsPerPage
 		return fmt.Sprintf(`
@@ -100,29 +99,71 @@ func TestFetchAllPagesSinglePage(t *testing.T) {
 		`, page, totalHits, hitsPerPage, from, to)
 	}
 
-	result := <-FetchAllPages(func(page int) chan Result[*AddressSearchResponse] {
-		ch := make(chan Result[*AddressSearchResponse])
+	// Synthesize fetching all pages
+	fetchAllPages := func(totalHits int) chan Result[[]Address] {
+		return FetchAllPages(func(page int) chan Result[*AddressSearchResponse] {
+			ch := make(chan Result[*AddressSearchResponse])
 
-		go func() {
-			res, err := ParseAddress(strings.NewReader(makeJsonData(page)))
-			result := Result[*AddressSearchResponse]{Ok: &res, Err: err}
-			ch <- result
-		}()
+			go func() {
+				res, err := ParseAddress(strings.NewReader(makeJsonData(page, totalHits)))
+				result := Result[*AddressSearchResponse]{Ok: &res, Err: err}
+				ch <- result
+			}()
 
-		return ch
+			return ch
+		})
+	}
+
+	t.Run("Single page", func(t *testing.T) {
+		totalHits := 1
+		result := <-fetchAllPages(totalHits)
+
+		fetched := *result.Ok
+		expected := []Address{
+			{
+				Text:     "Myrvollveien 5C",
+				PostCode: "1415",
+				PostText: "OPPEGÅRD",
+				Loc:      Location{59.78502106569645, 10.799290993113777},
+			},
+		}
+
+		if !reflect.DeepEqual(fetched, expected) {
+			t.Errorf("Expected %v address, got %v", expected, fetched)
+		}
 	})
 
-	fetched := *result.Ok
-	expected := []Address{
-		{
-			Text:     "Myrvollveien 5C",
-			PostCode: "1415",
-			PostText: "OPPEGÅRD",
-			Loc:      Location{59.78502106569645, 10.799290993113777},
-		},
-	}
+	t.Run("Three pages", func(t *testing.T) {
+		t.Skip("TODO: Doesn't yet fetch multiple pages")
 
-	if !reflect.DeepEqual(fetched, expected) {
-		t.Errorf("Expected %v address, got %v", expected, fetched)
-	}
+		totalHits := 3
+		result := <-fetchAllPages(totalHits)
+
+		fetched := *result.Ok
+		expected := []Address{
+			{
+				Text:     "Myrvollveien 5C",
+				PostCode: "1415",
+				PostText: "OPPEGÅRD",
+				Loc:      Location{59.78502106569645, 10.799290993113777},
+			},
+			{
+				Text:     "Myrvollveien 5C",
+				PostCode: "1415",
+				PostText: "OPPEGÅRD",
+				Loc:      Location{59.78502106569645, 10.799290993113777},
+			},
+			{
+				Text:     "Myrvollveien 5C",
+				PostCode: "1415",
+				PostText: "OPPEGÅRD",
+				Loc:      Location{59.78502106569645, 10.799290993113777},
+			},
+		}
+
+		if !reflect.DeepEqual(fetched, expected) {
+			t.Errorf("Expected %v address, got %v", expected, fetched)
+		}
+	})
+
 }
