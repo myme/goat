@@ -53,14 +53,16 @@ func TestParseAddress(t *testing.T) {
 
 	parsed, _ := ParseAddress(1, strings.NewReader(jsonData))
 
-	expected := Address{
-		Text:     "Myrvollveien 5C",
-		PostCode: "1415",
-		PostText: "OPPEGÅRD",
-		Loc:      Location{59.78502106569645, 10.799290993113777},
+	expected := []Address{
+		{
+			Text:     "Myrvollveien 5C",
+			PostCode: "1415",
+			PostText: "OPPEGÅRD",
+			Loc:      Location{59.78502106569645, 10.799290993113777},
+		},
 	}
 
-	if len(parsed.Addresses) != 1 || parsed.Addresses[0] != expected {
+	if !reflect.DeepEqual(parsed.Addresses, expected) {
 		t.Errorf("Expected %v address, got %v", expected, parsed)
 	}
 }
