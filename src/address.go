@@ -42,7 +42,7 @@ func SearchAddress(query string) chan Result[[]Address] {
 			page,
 			hitsPerPage,
 		)
-		return GetJSON(url, func (data io.Reader) (*AddressSearchResponse, error) {
+		return GetJSON(url, func(data io.Reader) (*AddressSearchResponse, error) {
 			return ParseAddress(hitsPerPage, data)
 		})
 	})
@@ -58,9 +58,12 @@ func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan
 		result := <-fetchPage(page)
 		if result.Err != nil {
 			ch <- Result[[]Address]{Ok: nil, Err: result.Err}
+			return
 		}
+
 		totalFetched += len((*result.Ok).Addresses)
 		addresses = append(addresses, (*result.Ok).Addresses...)
+
 		if totalFetched < (*result.Ok).Metadata.TotalHits {
 			go doFetchPage(page + 1)
 		} else {

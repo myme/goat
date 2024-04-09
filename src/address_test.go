@@ -100,23 +100,36 @@ func TestFetchAllPages(t *testing.T) {
 	}
 
 	// Synthesize fetching all pages
-	fetchAllPages := func(totalHits int) chan Result[[]Address] {
+	fetchAllPages := func(totalHits int, err error) chan Result[[]Address] {
 		return FetchAllPages(func(page int) chan Result[*AddressSearchResponse] {
 			ch := make(chan Result[*AddressSearchResponse])
 
 			go func() {
+				if err != nil {
+					ch <- Result[*AddressSearchResponse]{Ok: nil, Err: err}
+					return
+				}
 				res, err := ParseAddress(hitsPerPage, strings.NewReader(makeJsonData(page, totalHits)))
-				result := Result[*AddressSearchResponse]{Ok: &res, Err: err}
-				ch <- result
+				ch <- Result[*AddressSearchResponse]{Ok: &res, Err: err}
 			}()
 
 			return ch
 		})
 	}
 
+	t.Run("Error", func(t *testing.T) {
+		err := fmt.Errorf("Something wrong")
+		totalHits := 1
+		result := <-fetchAllPages(totalHits, err)
+
+		if result.Err != err {
+			t.Errorf("Expected %v address, got %v", err, result.Err)
+		}
+	})
+
 	t.Run("Single page", func(t *testing.T) {
 		totalHits := 1
-		result := <-fetchAllPages(totalHits)
+		result := <-fetchAllPages(totalHits, nil)
 
 		fetched := *result.Ok
 		expected := []Address{
@@ -135,7 +148,7 @@ func TestFetchAllPages(t *testing.T) {
 
 	t.Run("Three pages", func(t *testing.T) {
 		totalHits := 3
-		result := <-fetchAllPages(totalHits)
+		result := <-fetchAllPages(totalHits, nil)
 
 		fetched := *result.Ok
 		expected := []Address{
@@ -163,5 +176,4 @@ func TestFetchAllPages(t *testing.T) {
 			t.Errorf("Expected %v address, got %v", expected, fetched)
 		}
 	})
-
 }
