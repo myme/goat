@@ -14,7 +14,14 @@ import (
 
 const ADDRESS_SEARCH_BASE = "https://ws.geonorge.no/adresser/v1/sok"
 
-type AdressSearchResponse struct {
+type AddressSearchResponse struct {
+	Metadata  struct {
+		Page		   int    `json:"side"`
+		TotalHits      int    `json:"totaltAntallTreff"`
+		HitsPerPage    int    `json:"treffPerSide"`
+		From		   int    `json:"viserFra"`
+		To			   int    `json:"viserTil"`
+	} `json:"metadata"`
 	Addresses []Address `json:"adresser"`
 }
 
