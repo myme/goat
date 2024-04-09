@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/url"
 )
 
@@ -48,7 +49,9 @@ func SearchAddress(query string) chan Result[[]Address] {
 	})
 }
 
-func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan Result[[]Address] {
+type PageFetcher func(int) chan Result[*AddressSearchResponse]
+
+func FetchAllPages(fetchPage PageFetcher) chan Result[[]Address] {
 	ch := make(chan Result[[]Address])
 
 	go func() {
@@ -65,9 +68,10 @@ func FetchAllPages(fetchPage func(int) chan Result[*AddressSearchResponse]) chan
 		// Are there more pages to fetch?
 		if meta.To < meta.TotalHits {
 			// Start fetching the rest of the pages in parallel
-			channels := make([]chan Result[*AddressSearchResponse], meta.TotalHits/meta.HitsPerPage-1)
+			pagesToFetch := int(math.Ceil(float64(meta.TotalHits)/float64(meta.HitsPerPage))) - 1
+			channels := make([]chan Result[*AddressSearchResponse], pagesToFetch)
 			for i := 0; i < len(channels); i++ {
-				channels[i] = fetchPage(i+1)
+				channels[i] = fetchPage(i + 1)
 			}
 
 			// Allocate space for the rest of the addresses (avoid re-alloc later)

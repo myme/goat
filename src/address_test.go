@@ -71,10 +71,11 @@ func TestFetchAllPages(t *testing.T) {
 	// API JSON response data
 	makeJsonData := func(page, hitsPerPage, totalHits int) string {
 		from := page * hitsPerPage
-		to := from + hitsPerPage
+		to := min(from+hitsPerPage, totalHits)
+		entries := min(hitsPerPage, totalHits-from)
 
-		addresses := make([]string, hitsPerPage)
-		for i := 0; i < hitsPerPage; i++ {
+		addresses := make([]string, entries)
+		for i := range addresses {
 			addresses[i] = fmt.Sprintf(`
 				{
 				  "adressetekst": "Myrvollveien %d",
@@ -189,7 +190,7 @@ func TestFetchAllPages(t *testing.T) {
 
 	t.Run("Three pages, three per page", func(t *testing.T) {
 		hitsPerPage := 3
-		totalHits := hitsPerPage * 3
+		totalHits := hitsPerPage*3 - 1
 		result := <-fetchAllPages(hitsPerPage, totalHits, nil)
 
 		fetched := *result.Ok
@@ -238,12 +239,6 @@ func TestFetchAllPages(t *testing.T) {
 			},
 			{
 				Text:     "Myrvollveien 8",
-				PostCode: "1415",
-				PostText: "OPPEGÅRD",
-				Loc:      Location{59.78502106569645, 10.799290993113777},
-			},
-			{
-				Text:     "Myrvollveien 9",
 				PostCode: "1415",
 				PostText: "OPPEGÅRD",
 				Loc:      Location{59.78502106569645, 10.799290993113777},
